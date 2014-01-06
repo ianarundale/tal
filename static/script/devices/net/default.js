@@ -59,7 +59,7 @@ require.def(
 						callbacks.onError('timeout');
 					}
 				}
-			}, timeout || 5000);
+			}, timeout);
 
 			window[funcName] = function(obj) {
 				window.clearTimeout(timeoutHandle);
