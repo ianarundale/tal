@@ -45,6 +45,9 @@ require.def(
 			
 			if (window[funcName])
 				throw "A request with the name " + funcName + " is already in flight";
+
+            // if no timeout was provided default to 5 seconds
+            timeout = timeout || 5000;
 			
 			var timeoutHandle = window.setTimeout(function() {
 				if (window[funcName]) {
@@ -59,9 +62,8 @@ require.def(
 			}, timeout || 5000);
 
 			window[funcName] = function(obj) {
-				if (timeout) {
-					window.clearTimeout(timeoutHandle);
-				}
+				window.clearTimeout(timeoutHandle);
+
 				if (callbacks && callbacks.onSuccess) {
 					callbacks.onSuccess(obj);
 				}
