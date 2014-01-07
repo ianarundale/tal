@@ -24,34 +24,9 @@
  * Please contact us for an alternative licence
  */
 
-require.def("anite/requestmanager",
+require.def("antie/requestmanager",
     [],
     function () {
-
-        /**
-         * Inner class used to wrap the callbacks that are passed to the device.
-         * Must provide a REFERENCE to an array (queue) of request callbacks that
-         * will be triggered when the device has triggered this callback.
-         */
-        var QueuedRequestsDeviceCallbacks = function (requestCallbacks) {
-            return {
-                onSuccess : function (data) {
-                    this._triggerRequestCallbacks("onSuccess", data);
-                },
-                onError : function (error) {
-                    this._triggerRequestCallbacks("onError", error);
-                },
-
-                _triggerRequestCallbacks : function (fn, obj) {
-                    for (var i = 0; i < requestCallbacks.length; i++) {
-                        requestCallbacks[i][fn](obj);
-                    }
-
-                    // must clear the queue so it doesn't get run again
-                    requestCallbacks = undefined;
-                }
-            };
-        };
 
         function RequestManager() {
             var _inFlightRequests = {};
@@ -74,12 +49,11 @@ require.def("anite/requestmanager",
                 return !!(_inFlightRequests[url] && _inFlightRequests[url].length > 0);
             };
 
-
-            // think about how we are going to test this????
-
+            /**
+             *
+             * @param url
+             */
             this.getQueuedRequestsCallbacks = function(url) {
-                var requestCallbacks = _inFlightRequests[url];
-
                 return {
                     onSuccess : function (data) {
                         this._triggerRequestCallbacks("onSuccess", data);
@@ -89,18 +63,19 @@ require.def("anite/requestmanager",
                     },
 
                     _triggerRequestCallbacks : function (fn, obj) {
-                        for (var i = 0; i < requestCallbacks.length; i++) {
-                            requestCallbacks[i][fn](obj);
+                        for (var i = 0; i < _inFlightRequests[url].length; i++) {
+                            var callbackToRun = _inFlightRequests[url][i][fn];
+                            if (callbackToRun !== undefined) {
+                                callbackToRun(obj);
+                            }
                         }
 
                         // must clear the queue so it doesn't get run again
-                        requestCallbacks = undefined;
+                        _inFlightRequests[url] = undefined;
                     }
                 };
             };
-
         }
 
         return RequestManager;
-    }
-);
+    });

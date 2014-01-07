@@ -26,11 +26,10 @@
 
 require(
     [
-        "anite/requestmanager",
-        "antie/devices/device",
-        'antie/lib/sha1'
+        "antie/requestmanager",
+        "antie/devices/device"
     ],
-    function(RequestManager, Device, Sha1) {
+    function(RequestManager, Device) {
 
         var DONT_CARE_OBJ = {};
         var DONT_CARE = "";
@@ -60,8 +59,60 @@ require(
             testIsRequestInFlightReturnsTrueWhenRequestHasBeenRegistered : function() {
                 this._requestManagerObject.registerRequest(DONT_CARE_URL, DONT_CARE_OBJ);
                 assertTrue(this._requestManagerObject.isRequestInFlight(DONT_CARE_URL));
-            }
+            },
 
+            testGetQueuedRequestsCallbacksReturnsValidRequestCallbackObject : function() {
+                this._requestManagerObject.registerRequest(DONT_CARE_URL, DONT_CARE_OBJ);
+                var callbacks = this._requestManagerObject.getQueuedRequestsCallbacks(DONT_CARE_URL);
+
+                assertNotUndefined("onSuccess callback is required", callbacks.onSuccess);
+                assertNotUndefined("onError callback is required", callbacks.onError);
+            },
+
+            testTriggeringQueuedRequestsOnSuccessCallbacksRunsOnSuccessCallbacks : function() {
+                var callbacks1 = this._getStubCallbacks();
+                var callbacks2 = this._getStubCallbacks();
+
+                this._requestManagerObject.registerRequest(DONT_CARE_URL, callbacks1);
+                this._requestManagerObject.registerRequest(DONT_CARE_URL, callbacks2);
+
+                var callbacks = this._requestManagerObject.getQueuedRequestsCallbacks(DONT_CARE_URL);
+                callbacks._triggerRequestCallbacks("onSuccess", DONT_CARE_OBJ);
+
+                assertTrue("First request onSuccess callback called ok", callbacks1.onSuccess.calledWith(DONT_CARE_OBJ));
+                assertTrue("Second request onSuccess callback called ok", callbacks2.onSuccess.calledWith(DONT_CARE_OBJ));
+            },
+
+            testTriggeringQueuedRequestsOnSuccessCallbacksDoesNotRunOnErrorCallbacks : function() {
+                var callbacks1 = this._getStubCallbacks();
+                var callbacks2 = this._getStubCallbacks();
+
+                this._requestManagerObject.registerRequest(DONT_CARE_URL, callbacks1);
+                this._requestManagerObject.registerRequest(DONT_CARE_URL, callbacks2);
+
+                var callbacks = this._requestManagerObject.getQueuedRequestsCallbacks(DONT_CARE_URL);
+                callbacks._triggerRequestCallbacks("onSuccess", DONT_CARE_OBJ);
+
+                assertFalse("First request onError callback not called", callbacks1.onError.called);
+                assertFalse("Second request OnError callback not called", callbacks2.onError.called);
+            },
+
+            testTriggeringQueuedRequestsClearsTheCallbacksFromTheInFlightRequestsQueue : function() {
+                this._requestManagerObject.registerRequest(DONT_CARE_URL, DONT_CARE_OBJ);
+                this._requestManagerObject.registerRequest(DONT_CARE_URL, DONT_CARE_OBJ);
+
+                var callbacks = this._requestManagerObject.getQueuedRequestsCallbacks(DONT_CARE_URL);
+                callbacks._triggerRequestCallbacks("onSuccess", DONT_CARE_OBJ);
+
+                assertFalse(this._requestManagerObject.isRequestInFlight(DONT_CARE_URL));
+            },
+
+            _getStubCallbacks : function () {
+                return {
+                    onSuccess : sinon.stub(),
+                    onError : sinon.stub()
+                };
+            }
 
         })
     });
