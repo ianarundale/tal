@@ -26,10 +26,9 @@
 
 require(
     [
-        "antie/requestmanager",
-        "antie/devices/device"
+        "antie/requestmanager"
     ],
-    function(RequestManager, Device) {
+    function(RequestManager) {
 
         var DONT_CARE_OBJ = {};
         var DONT_CARE = "";
@@ -39,8 +38,6 @@ require(
             setUp: function () {
                 jstestdriver.plugins.async.CallbackPool.TIMEOUT = 2000;
                 this.sandbox = sinon.sandbox.create();
-                this._stubDevice = sinon.createStubInstance(Device);
-
                 this._requestManagerObject = new RequestManager();
             },
 
