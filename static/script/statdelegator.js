@@ -37,7 +37,37 @@ require.def("antie/statdelegator",
              * @ignore
              */
             init: function() {
+                this._delegates = [];
+            },
+            registerDelegate : function(delegateObject) {
+                // TODO: Error checking on the delegate object
+                this._delegates.push(delegateObject);
+            },
+            _delegateFunctionCall : function(functionName, params) {
+                var i = 0, noOfDelegates = this._delegates.length;
+                for (i; i < noOfDelegates; i++) {
+                    var delegate = this._delegates[i];
+                    if (this._doesDelegateSupportFunction(delegate, functionName)) {
+                        delegate[functionName](params);
+                    }
+                }
+            },
+            _doesDelegateSupportFunction : function(delegate, functionName) {
+                //debugger;
+                if (typeof(delegate[functionName]) === "function") {
+                    return true;
+                }
 
+
+                return false;
+            },
+
+            /**
+             * Media Events
+             */
+
+            sendPlayEvent : function(params) {
+                this._delegateFunctionCall("sendPlayEvent", params);
             }
         });
 
